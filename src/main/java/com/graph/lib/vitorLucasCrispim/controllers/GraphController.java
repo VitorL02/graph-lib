@@ -19,7 +19,7 @@ public class GraphController {
 
     @PostMapping(path = "/upload",consumes = {"multipart/form-data"})
     public ResponseEntity upload(@RequestParam(value = "file") MultipartFile file) throws Exception {
-
+        graphService.uploadGraphFile(file);
         return ResponseEntity.status(HttpStatus.OK).body("Processamento iniciado. Aguarde!");
     }
 }
