@@ -1,5 +1,8 @@
 package com.graph.lib.vitorLucasCrispim.services;
 
+import com.graph.lib.vitorLucasCrispim.entities.GraphBFS;
+import com.graph.lib.vitorLucasCrispim.entities.GraphMatrix;
+import com.graph.lib.vitorLucasCrispim.infra.ExceptionGenerica;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -45,52 +48,88 @@ public class GraphService {
             Files.move(result.toPath(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
             File resultListAdjacente = new File("result/resultListAdjacente.txt");
 
-            if(file.exists() && resultListAdjacente.exists() ){
+            if( file.exists() && resultListAdjacente.exists() ){
+                geraAlgoritimoBFS(file, resultListAdjacente);
+                geraMatrizAdjacenteCasoSolicitado(file, resultListAdjacente);
                 geraListaAdjacenteCasoSolicitado(file,resultListAdjacente);
             }
 
         }catch (Exception e){
-
+            throw new ExceptionGenerica(new StringBuilder().append("Erro ao enviar arquivo para processamento! ").append(e).toString());
         }
     }
+
+    private static void geraAlgoritimoBFS(File file, File resultListAdjacente) throws IOException {
+        BufferedReader leitor = new BufferedReader(new FileReader(file));
+        BufferedWriter escritor = new BufferedWriter(new FileWriter(resultListAdjacente,true));
+
+        String linha;
+        int V = Integer.parseInt(leitor.readLine());
+        GraphBFS graphBFS = new GraphBFS();
+
+        while((linha = leitor.readLine()) != null) {
+            int primeiroVertice = Integer.parseInt(linha.split(" ")[0]);
+            int segundoVertice = Integer.parseInt(linha.split(" ")[1]);
+            graphBFS.addEdge(primeiroVertice,segundoVertice);
+        }
+        graphBFS.BFSWriter(1678,escritor);
+    }
+
+    private static void geraMatrizAdjacenteCasoSolicitado(File file, File resultListAdjacente) throws IOException {
+        BufferedReader leitor = new BufferedReader(new FileReader(file));
+        BufferedWriter escritor = new BufferedWriter(new FileWriter(resultListAdjacente,true));
+
+        String linha;
+        int V = Integer.parseInt(leitor.readLine());
+        GraphMatrix graphMatrix = new GraphMatrix(V);
+
+        while((linha = leitor.readLine()) != null) {
+            int primeiroVertice = Integer.parseInt(linha.split(" ")[0]);
+            int segundoVertice = Integer.parseInt(linha.split(" ")[1]);
+            graphMatrix.addEdge(primeiroVertice,segundoVertice);
+
+        }
+        escritor.write(graphMatrix.toString());
+        escritor.flush();
+    }
+
 
     private static void geraListaAdjacenteCasoSolicitado(File file, File result) throws IOException {
         try  {
             BufferedReader leitor = new BufferedReader(new FileReader(file));
-            BufferedWriter escritor = new BufferedWriter(new FileWriter(result));
-
+            BufferedWriter escritor = new BufferedWriter(new FileWriter(result,true));
             String linha;
             int V = Integer.parseInt(leitor.readLine());
             Map<Integer, List<Integer>> am = new HashMap<>();
 
             while((linha = leitor.readLine()) != null) {
-                int testeUm = Integer.parseInt(linha.split(" ")[0]);
-                int testDois = Integer.parseInt(linha.split(" ")[1]);
-                addEdge(am, testeUm, testDois);
+                int primeiroVertice = Integer.parseInt(linha.split(" ")[0]);
+                int segundoVertice = Integer.parseInt(linha.split(" ")[1]);
+                addEdge(am, primeiroVertice, segundoVertice);
             }
 
             am.forEach((key, value) -> {
                 try {
                     escritor.write("\nVertex " + key + ":");
-                    System.out.print("\nVertex " + key + ":");
                     value.forEach(vertex -> {
-                        System.out.print(" -> " + vertex);
                         try {
                             escritor.write(" -> " + vertex);
                         } catch (IOException e) {
-                            throw new RuntimeException(e);
+                            e.printStackTrace();
                         }
                     });
                     escritor.newLine();
                     escritor.flush();
-                    System.out.println();
                 } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    e.printStackTrace();
                 }
             });
+
+            escritor.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
 
     }
 
@@ -98,8 +137,5 @@ public class GraphService {
         am.computeIfAbsent(s, k -> new ArrayList<>()).add(d);
         am.computeIfAbsent(d, k -> new ArrayList<>()).add(s);
     }
-
-
-
 
 }
