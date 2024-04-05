@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Service
 public class GraphService {
@@ -47,11 +49,32 @@ public class GraphService {
             Files.createDirectories(targetLocation.getParent());
             Files.move(result.toPath(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
             File resultListAdjacente = new File("result/resultListAdjacente.txt");
+            File resultPath = new File("result");
 
             if( file.exists() && resultListAdjacente.exists() ){
                 geraAlgoritimoBFS(file, resultListAdjacente);
                 geraMatrizAdjacenteCasoSolicitado(file, resultListAdjacente);
                 geraListaAdjacenteCasoSolicitado(file,resultListAdjacente);
+
+                File[] resultFiles = resultPath.listFiles();
+                if(file.length() == 0){
+                    throw new ExceptionGenerica("Não existem arquivos de resultado");
+                }
+                FileOutputStream fos = new FileOutputStream("result/zipFile.zip");
+                ZipOutputStream zipOut = new ZipOutputStream(fos);
+                for(File zipThis : resultFiles){
+                    FileInputStream fis = new FileInputStream(zipThis);
+                    ZipEntry zipEntry = new ZipEntry(zipThis.getName());
+                    zipOut.putNextEntry(zipEntry);
+                    byte[] bytes =  new byte[2048];
+                    int length;
+                    while ((length = fis.read(bytes))  >= 0){
+                        zipOut.write(bytes,0,length);
+                    }
+                    fis.close();
+                }
+                zipOut.close();
+                fos.close();
             }
 
         }catch (Exception e){
