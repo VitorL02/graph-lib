@@ -23,29 +23,33 @@ public class GraphBFS {
         nivel.putIfAbsent(w, 0);
     }
 
-    public void BFSWriter(int s, BufferedWriter escritor) throws IOException {
-        if (!adj.containsKey(s)) return;
+    public  void BFSWriter(int s, BufferedWriter escritor)  {
+        try{
+            if (!adj.containsKey(s)) return;
 
-        Map<Integer, Boolean> visited = new HashMap<>();
-        Queue<Integer> queue = new LinkedList<>();
+            Map<Integer, Boolean> visited = new HashMap<>();
+            Queue<Integer> queue = new LinkedList<>();
 
-        visited.put(s, true);
-        queue.add(s);
-        nivel.put(s, 0);
+            visited.put(s, true);
+            queue.add(s);
+            nivel.put(s, 0);
 
-        while (!queue.isEmpty()) {
-            int n = queue.poll();
-            escritor.write("Vertice: " + n + ", Nivel: " + nivel.get(n) + ", Parente: " + pai.getOrDefault(n, null) + "\n");
-
-            for (int a : adj.get(n)) {
-                if (!visited.getOrDefault(a, false)) {
-                    visited.put(a, true);
-                    queue.add(a);
-                    pai.put(a, n);
-                    nivel.put(a, nivel.get(n) + 1);
+            while (!queue.isEmpty()) {
+                int n = queue.poll();
+                escritor.write("Vertice: " + n + ", Nivel: " + nivel.get(n) + ", Parente: " + pai.getOrDefault(n, null) + "\n");
+                for (int a : adj.get(n)) {
+                    if (!visited.getOrDefault(a, false)) {
+                        visited.put(a, true);
+                        queue.add(a);
+                        pai.put(a, n);
+                        nivel.put(a, nivel.get(n) + 1);
+                    }
                 }
             }
+            escritor.flush();
+        }catch (Exception e){
+            e.printStackTrace();
         }
-        escritor.flush();
+
     }
 }

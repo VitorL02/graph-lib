@@ -1,8 +1,14 @@
 package com.graph.lib.vitorLucasCrispim.services;
 
+import com.graph.lib.vitorLucasCrispim.dto.SolicitacaoGrafoDTO;
 import com.graph.lib.vitorLucasCrispim.entities.GraphBFS;
 import com.graph.lib.vitorLucasCrispim.entities.GraphMatrix;
+import com.graph.lib.vitorLucasCrispim.entities.SolicitacaoGrafoVO;
+import com.graph.lib.vitorLucasCrispim.enums.RepresentacaoGrafoEnum;
 import com.graph.lib.vitorLucasCrispim.infra.ExceptionGenerica;
+import com.graph.lib.vitorLucasCrispim.repositories.SolicitacaoGrafoRepository;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -13,10 +19,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -27,21 +31,34 @@ public class GraphService {
 
     private final Path resultFileStorageLocation;
 
+    @Autowired
+    private SolicitacaoGrafoRepository solicitacaoGrafoRepository;
+
 
     public GraphService(@Value("${file.upload.directory}")String fileUploadDirectory, @Value("${file.save.directory}")String resultUploadDirectory ) {
         this.fileStorageLocation = Paths.get(fileUploadDirectory);
         this.resultFileStorageLocation = Paths.get(resultUploadDirectory);
     }
 
-    public void uploadGraphFile(MultipartFile file) throws Exception {
+    public void uploadGraphFile(MultipartFile file, SolicitacaoGrafoDTO solicitacaoGrafoDTO) throws Exception {
         var fileName = StringUtils.cleanPath(file.getOriginalFilename());
         fileName = "grafo.txt";
         Path targetLocation = fileStorageLocation.resolve(fileName);
         file.transferTo(targetLocation);
-        readGraphFileAndGenerateGraphs();
+        SolicitacaoGrafoVO solicitacaoGrafoVO = new SolicitacaoGrafoVO();
+        BeanUtils.copyProperties(solicitacaoGrafoDTO,solicitacaoGrafoVO);
+
+       // List<SolicitacaoGrafoVO> allSolicitations = solicitacaoGrafoRepository.findAll();
+       // if(allSolicitations == null || allSolicitations.size() >=0){
+        //    throw new ExceptionGenerica("Já existe uma solicitação em processamento, favor aguardar");
+       // }
+        solicitacaoGrafoVO.setDataSolicitacao(LocalDate.now());
+        solicitacaoGrafoRepository.save(solicitacaoGrafoVO);
+
+
     }
 
-    public void readGraphFileAndGenerateGraphs (){
+    public void readGraphFileAndGenerateGraphs (SolicitacaoGrafoVO solicitacaoGrafoVO){
         try{
             File  file = new File("temp/grafo.txt");
             File result = File.createTempFile("resultListAdjacente", ".txt");
@@ -49,17 +66,25 @@ public class GraphService {
             Files.createDirectories(targetLocation.getParent());
             Files.move(result.toPath(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
             File resultListAdjacente = new File("result/resultListAdjacente.txt");
-            File resultPath = new File("result");
+            Integer verticeOrigem = solicitacaoGrafoVO.getVerticeOrigem();
 
             if( file.exists() && resultListAdjacente.exists() ){
-                geraAlgoritimoBFS(file, resultListAdjacente);
-                geraMatrizAdjacenteCasoSolicitado(file, resultListAdjacente);
-                geraListaAdjacenteCasoSolicitado(file,resultListAdjacente);
 
+                geraAlgoritimoBFS(file, resultListAdjacente,verticeOrigem);
+
+                if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.MATRIZ)){
+                    geraMatrizAdjacenteCasoSolicitado(file, resultListAdjacente);
+                }else if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.VETOR)){
+                    geraListaAdjacenteCasoSolicitado(file,resultListAdjacente);
+                }
+
+                File resultPath = new File("result");
                 File[] resultFiles = resultPath.listFiles();
+
                 if(file.length() == 0){
                     throw new ExceptionGenerica("Não existem arquivos de resultado");
                 }
+
                 FileOutputStream fos = new FileOutputStream("result/zipFile.zip");
                 ZipOutputStream zipOut = new ZipOutputStream(fos);
                 for(File zipThis : resultFiles){
@@ -76,13 +101,14 @@ public class GraphService {
                 zipOut.close();
                 fos.close();
             }
+            solicitacaoGrafoRepository.deleteAll();
 
         }catch (Exception e){
             throw new ExceptionGenerica(new StringBuilder().append("Erro ao enviar arquivo para processamento! ").append(e).toString());
         }
     }
 
-    private static void geraAlgoritimoBFS(File file, File resultListAdjacente) throws IOException {
+    private static void geraAlgoritimoBFS(File file, File resultListAdjacente, Integer verticeOrigem) throws IOException {
         BufferedReader leitor = new BufferedReader(new FileReader(file));
         BufferedWriter escritor = new BufferedWriter(new FileWriter(resultListAdjacente,true));
 
@@ -95,7 +121,7 @@ public class GraphService {
             int segundoVertice = Integer.parseInt(linha.split(" ")[1]);
             graphBFS.addEdge(primeiroVertice,segundoVertice);
         }
-        graphBFS.BFSWriter(1678,escritor);
+        graphBFS.BFSWriter(verticeOrigem,escritor);
     }
 
     private static void geraMatrizAdjacenteCasoSolicitado(File file, File resultListAdjacente) throws IOException {
@@ -160,5 +186,7 @@ public class GraphService {
         am.computeIfAbsent(s, k -> new ArrayList<>()).add(d);
         am.computeIfAbsent(d, k -> new ArrayList<>()).add(s);
     }
+
+
 
 }

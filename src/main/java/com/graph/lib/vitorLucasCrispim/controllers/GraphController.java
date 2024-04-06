@@ -1,25 +1,47 @@
 package com.graph.lib.vitorLucasCrispim.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.graph.lib.vitorLucasCrispim.dto.SolicitacaoGrafoDTO;
 import com.graph.lib.vitorLucasCrispim.services.GraphService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import org.springframework.validation.Validator;
 
 @RestController
 @RequestMapping("/graph")
 public class GraphController {
 
+    private final ObjectMapper objectMapper;
+    private final Validator validator;
+
+    @Autowired
+    public GraphController(ObjectMapper objectMapper, Validator validator) {
+        this.objectMapper = objectMapper;
+        this.validator = validator;
+    }
     @Autowired
     private GraphService graphService;
 
-    @PostMapping(path = "/upload",consumes = {"multipart/form-data"})
-    public ResponseEntity upload(@RequestParam(value = "file") MultipartFile file) throws Exception {
-        graphService.uploadGraphFile(file);
+    @PostMapping(path = "/upload", consumes = {"multipart/form-data"})
+    public ResponseEntity upload(@RequestPart(value = "file") MultipartFile file, @RequestPart(value ="solicitacaoGrafoDTO" ) String solicitacaoGrafoDTOJSON) throws Exception {
+
+        SolicitacaoGrafoDTO solicitacaoGrafoDTO = new ObjectMapper().readValue(solicitacaoGrafoDTOJSON, SolicitacaoGrafoDTO.class);
+
+        BindingResult bindingResult = new BeanPropertyBindingResult(solicitacaoGrafoDTO, "solicitacaoGrafoDTO");
+        validator.validate(solicitacaoGrafoDTO, bindingResult);
+
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
+        }
+
+
+        graphService.uploadGraphFile(file,solicitacaoGrafoDTO);
         return ResponseEntity.status(HttpStatus.OK).body("Processamento iniciado. Aguarde!");
     }
 }
