@@ -34,7 +34,7 @@ public class ScheduleJob {
     }
 
 
-    @Scheduled(fixedDelay = 90000)
+    @Scheduled(fixedDelay = 120000)
     public void limpaDiretorioGrafo(){
         File resultDirectory = new File("result");
         try{
