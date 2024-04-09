@@ -1,6 +1,7 @@
 package com.graph.lib.vitorLucasCrispim.services;
 
 import com.graph.lib.vitorLucasCrispim.dto.SolicitacaoGrafoDTO;
+import com.graph.lib.vitorLucasCrispim.entities.Contadores;
 import com.graph.lib.vitorLucasCrispim.entities.GraphBFS;
 import com.graph.lib.vitorLucasCrispim.entities.GraphMatrix;
 import com.graph.lib.vitorLucasCrispim.entities.SolicitacaoGrafoVO;
@@ -35,6 +36,9 @@ public class GraphService {
     private SolicitacaoGrafoRepository solicitacaoGrafoRepository;
 
 
+
+
+
     public GraphService(@Value("${file.upload.directory}")String fileUploadDirectory, @Value("${file.save.directory}")String resultUploadDirectory ) {
         this.fileStorageLocation = Paths.get(fileUploadDirectory);
         this.resultFileStorageLocation = Paths.get(resultUploadDirectory);
@@ -55,11 +59,15 @@ public class GraphService {
         solicitacaoGrafoVO.setDataSolicitacao(LocalDate.now());
         solicitacaoGrafoRepository.save(solicitacaoGrafoVO);
 
-
     }
 
     public void readGraphFileAndGenerateGraphs (SolicitacaoGrafoVO solicitacaoGrafoVO){
         try{
+            Contadores contadores = new Contadores();
+            contadores.setContadorArestas(0);
+            contadores.setNumeroVertices(0);
+            contadores.setGrauMaximo(0);
+            contadores.setGrauMinimo(0);
             File  file = new File("temp/grafo.txt");
             File result = File.createTempFile("resultListAdjacente", ".txt");
             Path targetLocation = resultFileStorageLocation.resolve("resultListAdjacente.txt");
@@ -70,13 +78,16 @@ public class GraphService {
 
             if( file.exists() && resultListAdjacente.exists() ){
 
-                geraAlgoritimoBFS(file, resultListAdjacente,verticeOrigem);
+                geraAlgoritimoBFS(file, resultListAdjacente,verticeOrigem,contadores);
 
                 if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.MATRIZ)){
-                    geraMatrizAdjacenteCasoSolicitado(file, resultListAdjacente);
+                    geraMatrizAdjacenteCasoSolicitado(file, resultListAdjacente,contadores);
                 }else if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.VETOR)){
-                    geraListaAdjacenteCasoSolicitado(file,resultListAdjacente);
+                    geraListaAdjacenteCasoSolicitado(file,resultListAdjacente,contadores);
                 }
+
+
+                geraRelatorioFinal(contadores, resultListAdjacente);
 
                 File resultPath = new File("result");
                 File[] resultFiles = resultPath.listFiles();
@@ -108,14 +119,37 @@ public class GraphService {
         }
     }
 
-    private static void geraAlgoritimoBFS(File file, File resultListAdjacente, Integer verticeOrigem) throws IOException {
+    private static void geraRelatorioFinal(Contadores contadores, File resultListAdjacente) throws IOException {
+        BufferedWriter escritor = new BufferedWriter(new FileWriter(resultListAdjacente,true));
+        escritor.newLine();
+        escritor.write("Relatorio: ");
+        escritor.newLine();
+        escritor.write(new StringBuilder().append("Numero total de Vertices: ").append(contadores.getNumeroVertices()).toString());
+        escritor.newLine();
+        escritor.write(new StringBuilder().append("Numero total de Arestas: ").append(contadores.getContadorArestas()).toString());
+        escritor.newLine();
+        escritor.write(new StringBuilder().append("Grau Minimo: ").append(contadores.getGrauMinimo()).toString());
+        escritor.newLine();
+        escritor.write(new StringBuilder().append("Grau Maximo: ").append(contadores.getGrauMaximo()).toString());
+        escritor.flush();
+        escritor.close();
+    }
+
+
+    private static void geraAlgoritimoBFS(File file, File resultListAdjacente, Integer verticeOrigem, Contadores contadores) throws IOException {
         BufferedReader leitor = new BufferedReader(new FileReader(file));
         BufferedWriter escritor = new BufferedWriter(new FileWriter(resultListAdjacente,true));
 
         String linha;
         int V = Integer.parseInt(leitor.readLine());
+        contadores.setNumeroVertices(V);
+
+
         GraphBFS graphBFS = new GraphBFS();
 
+        escritor.write("Grafo de Largura:");
+        escritor.newLine();
+        escritor.flush();
         while((linha = leitor.readLine()) != null) {
             int primeiroVertice = Integer.parseInt(linha.split(" ")[0]);
             int segundoVertice = Integer.parseInt(linha.split(" ")[1]);
@@ -124,7 +158,7 @@ public class GraphService {
         graphBFS.BFSWriter(verticeOrigem,escritor);
     }
 
-    private static void geraMatrizAdjacenteCasoSolicitado(File file, File resultListAdjacente) throws IOException {
+    private static void geraMatrizAdjacenteCasoSolicitado(File file, File resultListAdjacente, Contadores contadores) throws IOException {
         BufferedReader leitor = new BufferedReader(new FileReader(file));
         BufferedWriter escritor = new BufferedWriter(new FileWriter(resultListAdjacente,true));
 
@@ -136,14 +170,15 @@ public class GraphService {
             int primeiroVertice = Integer.parseInt(linha.split(" ")[0]);
             int segundoVertice = Integer.parseInt(linha.split(" ")[1]);
             graphMatrix.addEdge(primeiroVertice,segundoVertice);
-
+            contadores.setContadorArestas(contadores.getContadorArestas() + 1);
         }
+        graphMatrix.findMinAndMaxDegrees(contadores);
         escritor.write(graphMatrix.toString());
         escritor.flush();
     }
 
 
-    private static void geraListaAdjacenteCasoSolicitado(File file, File result) throws IOException {
+    private static void geraListaAdjacenteCasoSolicitado(File file, File result, Contadores contadores) throws IOException {
         try  {
             BufferedReader leitor = new BufferedReader(new FileReader(file));
             BufferedWriter escritor = new BufferedWriter(new FileWriter(result,true));
@@ -155,6 +190,7 @@ public class GraphService {
                 int primeiroVertice = Integer.parseInt(linha.split(" ")[0]);
                 int segundoVertice = Integer.parseInt(linha.split(" ")[1]);
                 addEdge(am, primeiroVertice, segundoVertice);
+                contadores.setContadorArestas(contadores.getContadorArestas() + 1);
             }
 
             am.forEach((key, value) -> {
