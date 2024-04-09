@@ -26,28 +26,28 @@ public class GraphMatrix {
     }
 
     public void findMinAndMaxDegrees(Contadores contadores) {
-        int minDegree = Integer.MAX_VALUE;
-        int maxDegree = 0;
+        int grauMinimo = Integer.MAX_VALUE;
+        int grauMaximo = 0;
         int verticesWithEdges = 0;
 
         for (List<Integer> edges : adjList) {
-            int degree = edges.size();
-            if (degree > 0) {
+            int grau = edges.size();
+            if (grau > 0) {
                 verticesWithEdges++;
-                if (degree > maxDegree) {
-                    maxDegree = degree;
+                if (grau > grauMaximo) {
+                    grauMaximo = grau;
                 }
-                if (degree < minDegree) {
-                    minDegree = degree;
+                if (grau < grauMinimo) {
+                    grauMinimo = grau;
                 }
             }
         }
 
         if (verticesWithEdges == 0) {
-            minDegree = 0;
+            grauMinimo = 0;
         }
-        contadores.setGrauMinimo(minDegree);
-        contadores.setGrauMaximo(maxDegree);
+        contadores.setGrauMinimo(grauMinimo);
+        contadores.setGrauMaximo(grauMaximo);
 
     }
 

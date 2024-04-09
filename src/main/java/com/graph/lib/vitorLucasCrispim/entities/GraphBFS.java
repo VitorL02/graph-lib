@@ -47,6 +47,7 @@ public class GraphBFS {
                 }
             }
             escritor.flush();
+            escritor.close();
         }catch (Exception e){
             e.printStackTrace();
         }

@@ -69,25 +69,25 @@ public class GraphService {
             contadores.setGrauMaximo(0);
             contadores.setGrauMinimo(0);
             File  file = new File("temp/grafo.txt");
-            File result = File.createTempFile("resultListAdjacente", ".txt");
-            Path targetLocation = resultFileStorageLocation.resolve("resultListAdjacente.txt");
+            File result = File.createTempFile("result", ".txt");
+            Path targetLocation = resultFileStorageLocation.resolve("result.txt");
             Files.createDirectories(targetLocation.getParent());
             Files.move(result.toPath(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            File resultListAdjacente = new File("result/resultListAdjacente.txt");
+            File resultFile = new File("result/result.txt");
             Integer verticeOrigem = solicitacaoGrafoVO.getVerticeOrigem();
 
-            if( file.exists() && resultListAdjacente.exists() ){
+            if( file.exists() && resultFile.exists() ){
 
-                geraAlgoritimoBFS(file, resultListAdjacente,verticeOrigem,contadores);
+                geraAlgoritimoBFS(file, resultFile,verticeOrigem,contadores);
 
                 if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.MATRIZ)){
-                    geraMatrizAdjacenteCasoSolicitado(file, resultListAdjacente,contadores);
+                    geraMatrizAdjacenteCasoSolicitado(file, resultFile,contadores);
                 }else if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.VETOR)){
-                    geraListaAdjacenteCasoSolicitado(file,resultListAdjacente,contadores);
+                    geraListaAdjacenteCasoSolicitado(file,resultFile,contadores);
                 }
 
 
-                geraRelatorioFinal(contadores, resultListAdjacente);
+                geraRelatorioFinal(contadores, resultFile);
 
                 File resultPath = new File("result");
                 File[] resultFiles = resultPath.listFiles();
@@ -113,6 +113,7 @@ public class GraphService {
                 fos.close();
             }
             solicitacaoGrafoRepository.deleteAll();
+            result.delete();
 
         }catch (Exception e){
             throw new ExceptionGenerica(new StringBuilder().append("Erro ao enviar arquivo para processamento! ").append(e).toString());
@@ -175,6 +176,7 @@ public class GraphService {
         graphMatrix.findMinAndMaxDegrees(contadores);
         escritor.write(graphMatrix.toString());
         escritor.flush();
+        escritor.close();
     }
 
 
@@ -184,6 +186,10 @@ public class GraphService {
             BufferedWriter escritor = new BufferedWriter(new FileWriter(result,true));
             String linha;
             int V = Integer.parseInt(leitor.readLine());
+            int grauMinimo = Integer.MAX_VALUE;
+            int grauMaximo = Integer.MIN_VALUE;
+
+
             Map<Integer, List<Integer>> am = new HashMap<>();
 
             while((linha = leitor.readLine()) != null) {
@@ -193,6 +199,19 @@ public class GraphService {
                 contadores.setContadorArestas(contadores.getContadorArestas() + 1);
             }
 
+            for (int vertex : am.keySet()) {
+                int grau = am.get(vertex).size();
+                if (grau > 0) {
+                    grauMinimo = Math.min(grauMinimo, grau);
+                }
+                grauMaximo = Math.max(grauMaximo, grau);
+            }
+
+            contadores.setGrauMinimo(grauMinimo);
+            contadores.setGrauMaximo(grauMaximo);
+            escritor.newLine();
+            escritor.write("Lista Adjacente: ");
+            escritor.newLine();
             am.forEach((key, value) -> {
                 try {
                     escritor.write("\nVertex " + key + ":");
@@ -214,15 +233,12 @@ public class GraphService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 
     static void addEdge(Map<Integer, List<Integer>> am, int s, int d) {
         am.computeIfAbsent(s, k -> new ArrayList<>()).add(d);
         am.computeIfAbsent(d, k -> new ArrayList<>()).add(s);
     }
-
 
 
 }
