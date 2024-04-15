@@ -1,10 +1,7 @@
 package com.graph.lib.vitorLucasCrispim.services;
 
 import com.graph.lib.vitorLucasCrispim.dto.SolicitacaoGrafoDTO;
-import com.graph.lib.vitorLucasCrispim.entities.Contadores;
-import com.graph.lib.vitorLucasCrispim.entities.GraphBFS;
-import com.graph.lib.vitorLucasCrispim.entities.GraphMatrix;
-import com.graph.lib.vitorLucasCrispim.entities.SolicitacaoGrafoVO;
+import com.graph.lib.vitorLucasCrispim.entities.*;
 import com.graph.lib.vitorLucasCrispim.enums.RepresentacaoGrafoEnum;
 import com.graph.lib.vitorLucasCrispim.infra.ExceptionGenerica;
 import com.graph.lib.vitorLucasCrispim.repositories.SolicitacaoGrafoRepository;
@@ -80,6 +77,9 @@ public class GraphService {
 
                 geraAlgoritimoBFS(file, resultFile,verticeOrigem,contadores);
 
+                geraAlgoritimoDFS(file,resultFile,verticeOrigem);
+
+
                 if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.MATRIZ)){
                     geraMatrizAdjacenteCasoSolicitado(file, resultFile,contadores);
                 }else if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.VETOR)){
@@ -120,6 +120,27 @@ public class GraphService {
         }
     }
 
+    private static void geraAlgoritimoDFS(File file, File resultFile, Integer verticeOrigem) throws IOException {
+        BufferedReader leitor = new BufferedReader(new FileReader(file));
+        BufferedWriter escritor = new BufferedWriter(new FileWriter(resultFile,true));
+
+        String linha;
+        int V = Integer.parseInt(leitor.readLine());
+
+        GraphDFS graphDFS = new GraphDFS();
+        escritor.newLine();
+        escritor.write("Grafo de Profundidade (DFS) :");
+        escritor.newLine();
+        escritor.flush();
+        while((linha = leitor.readLine()) != null) {
+            int primeiroVertice = Integer.parseInt(linha.split(" ")[0]);
+            int segundoVertice = Integer.parseInt(linha.split(" ")[1]);
+            graphDFS.addEdge(primeiroVertice,segundoVertice);
+        }
+
+        graphDFS.DFSWriter(verticeOrigem,escritor);
+    }
+
     private static void geraRelatorioFinal(Contadores contadores, File resultListAdjacente) throws IOException {
         BufferedWriter escritor = new BufferedWriter(new FileWriter(resultListAdjacente,true));
         escritor.newLine();
@@ -148,7 +169,7 @@ public class GraphService {
 
         GraphBFS graphBFS = new GraphBFS();
 
-        escritor.write("Grafo de Largura:");
+        escritor.write("Grafo de Largura (BFS) :");
         escritor.newLine();
         escritor.flush();
         while((linha = leitor.readLine()) != null) {

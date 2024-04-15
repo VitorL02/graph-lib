@@ -22,7 +22,7 @@ public class ScheduleJob {
     private SolicitacaoGrafoRepository solicitacaoGrafoRepository;
 
 
-    @Scheduled(fixedDelay = 30000)
+    @Scheduled(fixedDelay = 20000)
     public void processaGrafo(){
         List<SolicitacaoGrafoVO> listaSolicitacoes = solicitacaoGrafoRepository.findAll();
         File file = new File("temp/grafo.txt");
@@ -34,11 +34,11 @@ public class ScheduleJob {
     }
 
 
-    @Scheduled(fixedDelay = 120000)
+    @Scheduled(fixedDelay = 140000)
     public void limpaDiretorioGrafo(){
         File resultDirectory = new File("result");
         try{
-            if(resultDirectory != null && resultDirectory.listFiles().length > 0){
+            if(resultDirectory != null && resultDirectory.listFiles().length > 1){
                 System.out.println("*** Iniciando limpeza do diretorio de resultado ***");
                 FileUtils.cleanDirectory(resultDirectory);
                 System.out.println("*** Finalizando limpeza do diretorio de resultado ***");
