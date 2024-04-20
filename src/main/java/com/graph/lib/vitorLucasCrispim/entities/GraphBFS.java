@@ -1,7 +1,6 @@
 package com.graph.lib.vitorLucasCrispim.entities;
 
 import java.io.BufferedWriter;
-import java.io.IOException;
 import java.util.*;
 
 public class GraphBFS {

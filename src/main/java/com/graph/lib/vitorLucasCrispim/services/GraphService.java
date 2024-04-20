@@ -139,6 +139,9 @@ public class GraphService {
         }
 
         graphDFS.DFSWriter(verticeOrigem,escritor);
+        graphDFS.escreverComponentes(escritor);
+
+
     }
 
     private static void geraRelatorioFinal(Contadores contadores, File resultListAdjacente) throws IOException {

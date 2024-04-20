@@ -13,6 +13,12 @@ public class SolicitacaoGrafoDTO {
 
     @NotNull(message = "E necessario informar o tipo de grafo que sera gerado")
     private RepresentacaoGrafoEnum representacaoGrafo;
+    @NotNull(message = "Distancia primeiro vertice não pode ser nulo")
+    @Min(value = 0,message = "O valor do primeiro vertice de distancia deve ser igual ou maior que zero")
+    private Integer primeiroVerticeDistancia;
+    @NotNull(message = "Distancia segundo vertice não pode ser nulo")
+    @Min(value = 0,message = "O valor do segundo vertice de distancia deve ser igual ou maior que zero")
+    private Integer segundoVerticeDistancia;
 
     public Integer getVerticeOrigem() {
         return verticeOrigem;
@@ -28,5 +34,21 @@ public class SolicitacaoGrafoDTO {
 
     public void setRepresentacaoGrafo(RepresentacaoGrafoEnum representacaoGrafo) {
         this.representacaoGrafo = representacaoGrafo;
+    }
+
+    public Integer getPrimeiroVerticeDistancia() {
+        return primeiroVerticeDistancia;
+    }
+
+    public void setPrimeiroVerticeDistancia(Integer primeiroVerticeDistancia) {
+        this.primeiroVerticeDistancia = primeiroVerticeDistancia;
+    }
+
+    public Integer getSegundoVerticeDistancia() {
+        return segundoVerticeDistancia;
+    }
+
+    public void setSegundoVerticeDistancia(Integer segundoVerticeDistancia) {
+        this.segundoVerticeDistancia = segundoVerticeDistancia;
     }
 }

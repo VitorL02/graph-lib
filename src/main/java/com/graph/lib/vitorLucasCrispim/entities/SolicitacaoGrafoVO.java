@@ -14,6 +14,10 @@ public class SolicitacaoGrafoVO {
     private LocalDate dataSolicitacao;
     private RepresentacaoGrafoEnum representacaoGrafo;
 
+    private Integer primeiroVerticeDistancia;
+
+    private Integer segundoVerticeDistancia;
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,5 +52,21 @@ public class SolicitacaoGrafoVO {
 
     public void setRepresentacaoGrafo(RepresentacaoGrafoEnum representacaoGrafo) {
         this.representacaoGrafo = representacaoGrafo;
+    }
+    @Column(name = "primeiro_vertice_distancia")
+    public Integer getPrimeiroVerticeDistancia() {
+        return primeiroVerticeDistancia;
+    }
+
+    public void setPrimeiroVerticeDistancia(Integer primeiroVerticeDistancia) {
+        this.primeiroVerticeDistancia = primeiroVerticeDistancia;
+    }
+    @Column(name = "segundo_vertice_distancia")
+    public Integer getSegundoVerticeDistancia() {
+        return segundoVerticeDistancia;
+    }
+
+    public void setSegundoVerticeDistancia(Integer segundoVerticeDistancia) {
+        this.segundoVerticeDistancia = segundoVerticeDistancia;
     }
 }
