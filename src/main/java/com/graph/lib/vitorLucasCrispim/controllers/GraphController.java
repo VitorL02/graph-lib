@@ -80,6 +80,15 @@ public class GraphController {
         return ResponseEntity.status(HttpStatus.OK).build();
 
     }
+    @GetMapping(path = "status")
+    public ResponseEntity retornaStatusGeracaoArquivo(){
+        File resultDirectory = new File("result");
+        if(resultDirectory != null && resultDirectory.listFiles().length > 1){
+            return ResponseEntity.status(HttpStatus.OK).body("Relatorio gerado com sucesso,favor realizar download");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body("Relatorio ainda em processamento, favor aguardar");
+    }
+
 
 
 

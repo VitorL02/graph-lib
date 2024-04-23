@@ -34,13 +34,15 @@ public class ScheduleJob {
     }
 
 
-    @Scheduled(fixedDelay = 140000)
+    @Scheduled(fixedDelay = 500000)
     public void limpaDiretorioGrafo(){
         File resultDirectory = new File("result");
+        File fileDirectory = new File("temp");
         try{
             if(resultDirectory != null && resultDirectory.listFiles().length > 1){
                 System.out.println("*** Iniciando limpeza do diretorio de resultado ***");
                 FileUtils.cleanDirectory(resultDirectory);
+                FileUtils.cleanDirectory(fileDirectory);
                 System.out.println("*** Finalizando limpeza do diretorio de resultado ***");
             }
         }catch (Exception e){

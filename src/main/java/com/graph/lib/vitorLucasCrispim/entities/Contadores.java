@@ -7,6 +7,11 @@ public class Contadores {
     private Integer grauMaximo;
 
     private Integer grauMinimo;
+    private Integer diametroGrafo;
+
+    private Integer distanciaEntreVertices;
+
+    private double mediaGraus;
 
     public Integer getNumeroVertices() {
         return numeroVertices;
@@ -38,5 +43,29 @@ public class Contadores {
 
     public void setGrauMinimo(Integer grauMinimo) {
         this.grauMinimo = grauMinimo;
+    }
+
+    public Integer getDiametroGrafo() {
+        return diametroGrafo;
+    }
+
+    public void setDiametroGrafo(Integer diametroGrafo) {
+        this.diametroGrafo = diametroGrafo;
+    }
+
+    public Integer getDistanciaEntreVertices() {
+        return distanciaEntreVertices;
+    }
+
+    public void setDistanciaEntreVertices(Integer distanciaEntreVertices) {
+        this.distanciaEntreVertices = distanciaEntreVertices;
+    }
+
+    public double getMediaGraus() {
+        return mediaGraus;
+    }
+
+    public void setMediaGraus(double mediaGraus) {
+        this.mediaGraus = mediaGraus;
     }
 }

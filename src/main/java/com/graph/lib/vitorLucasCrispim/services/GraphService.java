@@ -5,6 +5,7 @@ import com.graph.lib.vitorLucasCrispim.entities.*;
 import com.graph.lib.vitorLucasCrispim.enums.RepresentacaoGrafoEnum;
 import com.graph.lib.vitorLucasCrispim.infra.ExceptionGenerica;
 import com.graph.lib.vitorLucasCrispim.repositories.SolicitacaoGrafoRepository;
+import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,7 +51,7 @@ public class GraphService {
         BeanUtils.copyProperties(solicitacaoGrafoDTO,solicitacaoGrafoVO);
 
        // List<SolicitacaoGrafoVO> allSolicitations = solicitacaoGrafoRepository.findAll();
-       // if(allSolicitations == null || allSolicitations.size() >=0){
+       // if(allSolicitations == null || allSolicitations.size() > 0){
         //    throw new ExceptionGenerica("Já existe uma solicitação em processamento, favor aguardar");
        // }
         solicitacaoGrafoVO.setDataSolicitacao(LocalDate.now());
@@ -65,6 +66,9 @@ public class GraphService {
             contadores.setNumeroVertices(0);
             contadores.setGrauMaximo(0);
             contadores.setGrauMinimo(0);
+            contadores.setDiametroGrafo(0);
+            contadores.setDistanciaEntreVertices(0);
+            contadores.setMediaGraus(0);
             File  file = new File("temp/grafo.txt");
             File result = File.createTempFile("result", ".txt");
             Path targetLocation = resultFileStorageLocation.resolve("result.txt");
@@ -72,22 +76,24 @@ public class GraphService {
             Files.move(result.toPath(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
             File resultFile = new File("result/result.txt");
             Integer verticeOrigem = solicitacaoGrafoVO.getVerticeOrigem();
+            Integer primeiroVerticeDistancia = solicitacaoGrafoVO.getPrimeiroVerticeDistancia();
+            Integer segundoVerticeDistancia = solicitacaoGrafoVO.getSegundoVerticeDistancia();
 
             if( file.exists() && resultFile.exists() ){
 
-                geraAlgoritimoBFS(file, resultFile,verticeOrigem,contadores);
+                geraAlgoritimoBFS(file, resultFile,verticeOrigem,contadores,primeiroVerticeDistancia,segundoVerticeDistancia);
 
                 geraAlgoritimoDFS(file,resultFile,verticeOrigem);
 
 
                 if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.MATRIZ)){
                     geraMatrizAdjacenteCasoSolicitado(file, resultFile,contadores);
-                }else if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.VETOR)){
+                }else if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.LISTA)){
                     geraListaAdjacenteCasoSolicitado(file,resultFile,contadores);
                 }
 
 
-                geraRelatorioFinal(contadores, resultFile);
+                geraRelatorioFinal(contadores, resultFile,primeiroVerticeDistancia,segundoVerticeDistancia);
 
                 File resultPath = new File("result");
                 File[] resultFiles = resultPath.listFiles();
@@ -144,7 +150,8 @@ public class GraphService {
 
     }
 
-    private static void geraRelatorioFinal(Contadores contadores, File resultListAdjacente) throws IOException {
+    private static void geraRelatorioFinal(Contadores contadores, File resultListAdjacente,
+                                           Integer primeiroVerticeDistancia, Integer segundoVerticeDistancia) throws IOException {
         BufferedWriter escritor = new BufferedWriter(new FileWriter(resultListAdjacente,true));
         escritor.newLine();
         escritor.write("Relatorio: ");
@@ -156,12 +163,19 @@ public class GraphService {
         escritor.write(new StringBuilder().append("Grau Minimo: ").append(contadores.getGrauMinimo()).toString());
         escritor.newLine();
         escritor.write(new StringBuilder().append("Grau Maximo: ").append(contadores.getGrauMaximo()).toString());
+        escritor.newLine();
+        escritor.write(new StringBuilder().append("Media Graus: ").append(contadores.getMediaGraus()).toString());
+        escritor.newLine();
+        escritor.write(new StringBuilder().append("Diametro do Grafo: ").append(contadores.getDiametroGrafo()).toString());
+        escritor.newLine();
+        escritor.write(new StringBuilder().append("Distancia entre os vertices ").append(primeiroVerticeDistancia).append(" ")
+                .append(segundoVerticeDistancia).append(" é de: ").append(contadores.getDistanciaEntreVertices()).toString());
         escritor.flush();
         escritor.close();
     }
 
 
-    private static void geraAlgoritimoBFS(File file, File resultListAdjacente, Integer verticeOrigem, Contadores contadores) throws IOException {
+    private static void geraAlgoritimoBFS(File file, File resultListAdjacente, Integer verticeOrigem, Contadores contadores, Integer primeiroVerticeDistancia, Integer segundoVerticeDistancia) throws IOException {
         BufferedReader leitor = new BufferedReader(new FileReader(file));
         BufferedWriter escritor = new BufferedWriter(new FileWriter(resultListAdjacente,true));
 
@@ -180,7 +194,10 @@ public class GraphService {
             int segundoVertice = Integer.parseInt(linha.split(" ")[1]);
             graphBFS.addEdge(primeiroVertice,segundoVertice);
         }
+        contadores.setDiametroGrafo(graphBFS.calcularDiametro());
+        contadores.setDistanciaEntreVertices(graphBFS.distanciaEntreVertices(primeiroVerticeDistancia,segundoVerticeDistancia));
         graphBFS.BFSWriter(verticeOrigem,escritor);
+
     }
 
     private static void geraMatrizAdjacenteCasoSolicitado(File file, File resultListAdjacente, Contadores contadores) throws IOException {
@@ -205,14 +222,15 @@ public class GraphService {
 
 
     private static void geraListaAdjacenteCasoSolicitado(File file, File result, Contadores contadores) throws IOException {
-        try  {
+        try {
             BufferedReader leitor = new BufferedReader(new FileReader(file));
             BufferedWriter escritor = new BufferedWriter(new FileWriter(result,true));
             String linha;
             int V = Integer.parseInt(leitor.readLine());
             int grauMinimo = Integer.MAX_VALUE;
             int grauMaximo = Integer.MIN_VALUE;
-
+            int somaGraus = 0;
+            int verticesWithEdges = 0;
 
             Map<Integer, List<Integer>> am = new HashMap<>();
 
@@ -226,13 +244,17 @@ public class GraphService {
             for (int vertex : am.keySet()) {
                 int grau = am.get(vertex).size();
                 if (grau > 0) {
+                    verticesWithEdges++;
+                    somaGraus += grau;
                     grauMinimo = Math.min(grauMinimo, grau);
+                    grauMaximo = Math.max(grauMaximo, grau);
                 }
-                grauMaximo = Math.max(grauMaximo, grau);
             }
 
             contadores.setGrauMinimo(grauMinimo);
             contadores.setGrauMaximo(grauMaximo);
+            contadores.setMediaGraus(verticesWithEdges > 0 ? (double) somaGraus / verticesWithEdges : 0);
+
             escritor.newLine();
             escritor.write("Lista Adjacente: ");
             escritor.newLine();
@@ -258,7 +280,6 @@ public class GraphService {
             e.printStackTrace();
         }
     }
-
     static void addEdge(Map<Integer, List<Integer>> am, int s, int d) {
         am.computeIfAbsent(s, k -> new ArrayList<>()).add(d);
         am.computeIfAbsent(d, k -> new ArrayList<>()).add(s);

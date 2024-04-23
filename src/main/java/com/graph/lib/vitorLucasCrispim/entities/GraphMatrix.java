@@ -29,11 +29,13 @@ public class GraphMatrix {
         int grauMinimo = Integer.MAX_VALUE;
         int grauMaximo = 0;
         int verticesWithEdges = 0;
+        int somaGraus = 0;
 
         for (List<Integer> edges : adjList) {
             int grau = edges.size();
             if (grau > 0) {
                 verticesWithEdges++;
+                somaGraus += grau;
                 if (grau > grauMaximo) {
                     grauMaximo = grau;
                 }
@@ -46,9 +48,10 @@ public class GraphMatrix {
         if (verticesWithEdges == 0) {
             grauMinimo = 0;
         }
+
         contadores.setGrauMinimo(grauMinimo);
         contadores.setGrauMaximo(grauMaximo);
-
+        contadores.setMediaGraus(verticesWithEdges > 0 ? (double) somaGraus / verticesWithEdges : 0);
     }
 
 

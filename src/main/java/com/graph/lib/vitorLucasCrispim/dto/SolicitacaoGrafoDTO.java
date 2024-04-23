@@ -2,7 +2,6 @@ package com.graph.lib.vitorLucasCrispim.dto;
 
 import com.graph.lib.vitorLucasCrispim.enums.RepresentacaoGrafoEnum;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 
