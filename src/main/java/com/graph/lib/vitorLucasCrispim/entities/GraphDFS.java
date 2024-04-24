@@ -16,7 +16,7 @@ public class GraphDFS {
 
     public void addEdge(int v, int w) {
         adj.computeIfAbsent(v, k -> new LinkedList<>()).add(w);
-        adj.computeIfAbsent(w, k -> new LinkedList<>());
+        adj.computeIfAbsent(w, k -> new LinkedList<>()).add(v);
     }
 
     public void DFSWriter(int s, BufferedWriter escritor) {

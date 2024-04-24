@@ -16,7 +16,7 @@ public class GraphBFS {
 
     public void addEdge(int v, int w) {
         adj.computeIfAbsent(v, k -> new LinkedList<>()).add(w);
-        adj.computeIfAbsent(w, k -> new LinkedList<>());
+        adj.computeIfAbsent(w, k -> new LinkedList<>()).add(v);
 
         nivel.putIfAbsent(v, 0);
         nivel.putIfAbsent(w, 0);

@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -22,14 +23,14 @@ public class ScheduleJob {
     private SolicitacaoGrafoRepository solicitacaoGrafoRepository;
 
 
-    @Scheduled(fixedDelay = 20000)
+    @Scheduled(fixedDelay = 10000)
     public void processaGrafo(){
         List<SolicitacaoGrafoVO> listaSolicitacoes = solicitacaoGrafoRepository.findAll();
         File file = new File("temp/grafo.txt");
         if( ( listaSolicitacoes != null && !listaSolicitacoes.isEmpty() ) && file.exists() ){
-            System.out.println("*** Iniciando geração do grafo ***");
+            System.out.println(new StringBuilder().append("*** Iniciando geração do grafo *** ").append(LocalDateTime.now()).toString());
             graphService.readGraphFileAndGenerateGraphs(listaSolicitacoes.get(0));
-            System.out.println("*** Finalizando geração do grafo ***");
+            System.out.println(new StringBuilder().append("*** Finalizando geração do grafo *** ").append(LocalDateTime.now()).toString());
         }
     }
 
@@ -40,10 +41,11 @@ public class ScheduleJob {
         File fileDirectory = new File("temp");
         try{
             if(resultDirectory != null && resultDirectory.listFiles().length > 1){
-                System.out.println("*** Iniciando limpeza do diretorio de resultado ***");
+                System.out.println(new StringBuilder().append("*** Iniciando limpeza do diretorio de resultado *** ").append(LocalDateTime.now()).toString());
                 FileUtils.cleanDirectory(resultDirectory);
                 FileUtils.cleanDirectory(fileDirectory);
-                System.out.println("*** Finalizando limpeza do diretorio de resultado ***");
+                System.out.println(new StringBuilder().append("*** Finalizando limpeza do diretorio de resultado *** "
+                ).append(LocalDateTime.now()).toString());
             }
         }catch (Exception e){
             throw new ExceptionGenerica(new StringBuilder().append("Erro ao limpar diretorio de resultados: ").append(e).toString());
