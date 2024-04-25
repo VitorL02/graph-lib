@@ -111,6 +111,7 @@ public class GraphController {
         if(resultDirectory != null && resultDirectory.listFiles().length <= 0){
             return ResponseEntity.status(HttpStatus.OK).body("Relatorio não solicitado, favor solicitar");
         }
+
         return ResponseEntity.status(HttpStatus.OK).body("Relatorio ainda em processamento, favor aguardar");
     }
 
