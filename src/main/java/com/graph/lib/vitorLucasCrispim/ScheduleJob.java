@@ -2,6 +2,7 @@ package com.graph.lib.vitorLucasCrispim;
 
 import com.graph.lib.vitorLucasCrispim.entities.SolicitacaoGrafoVO;
 import com.graph.lib.vitorLucasCrispim.infra.ExceptionGenerica;
+import com.graph.lib.vitorLucasCrispim.repositories.AuditoriaRepository;
 import com.graph.lib.vitorLucasCrispim.repositories.SolicitacaoGrafoRepository;
 import com.graph.lib.vitorLucasCrispim.services.GraphService;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
@@ -21,6 +22,9 @@ public class ScheduleJob {
 
     @Autowired
     private SolicitacaoGrafoRepository solicitacaoGrafoRepository;
+
+    @Autowired
+    private AuditoriaRepository auditoriaRepository;
 
 
     @Scheduled(fixedDelay = 10000)
@@ -44,6 +48,7 @@ public class ScheduleJob {
                 System.out.println(new StringBuilder().append("*** Iniciando limpeza do diretorio de resultado *** ").append(LocalDateTime.now()).toString());
                 FileUtils.cleanDirectory(resultDirectory);
                 FileUtils.cleanDirectory(fileDirectory);
+                auditoriaRepository.deleteAll();
                 System.out.println(new StringBuilder().append("*** Finalizando limpeza do diretorio de resultado *** "
                 ).append(LocalDateTime.now()).toString());
             }

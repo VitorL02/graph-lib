@@ -6,3 +6,8 @@ representacao_grafo varchar(6),
 primeiro_vertice_distancia int,
 segundo_vertice_distancia int
 );
+
+CREATE TABLE IF NOT EXISTS tb_auditoria(
+id SERIAL primary key,
+mensagem_processamento varchar(240)
+);

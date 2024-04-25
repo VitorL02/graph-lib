@@ -4,6 +4,7 @@ import com.graph.lib.vitorLucasCrispim.dto.SolicitacaoGrafoDTO;
 import com.graph.lib.vitorLucasCrispim.entities.*;
 import com.graph.lib.vitorLucasCrispim.enums.RepresentacaoGrafoEnum;
 import com.graph.lib.vitorLucasCrispim.infra.ExceptionGenerica;
+import com.graph.lib.vitorLucasCrispim.repositories.AuditoriaRepository;
 import com.graph.lib.vitorLucasCrispim.repositories.SolicitacaoGrafoRepository;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.BeanUtils;
@@ -33,8 +34,8 @@ public class GraphService {
     @Autowired
     private SolicitacaoGrafoRepository solicitacaoGrafoRepository;
 
-
-
+    @Autowired
+    private AuditoriaRepository auditoriaRepository;
 
 
     public GraphService(@Value("${file.upload.directory}")String fileUploadDirectory, @Value("${file.save.directory}")String resultUploadDirectory ) {
@@ -50,16 +51,17 @@ public class GraphService {
         SolicitacaoGrafoVO solicitacaoGrafoVO = new SolicitacaoGrafoVO();
         BeanUtils.copyProperties(solicitacaoGrafoDTO,solicitacaoGrafoVO);
 
-       // List<SolicitacaoGrafoVO> allSolicitations = solicitacaoGrafoRepository.findAll();
-       // if(allSolicitations == null || allSolicitations.size() > 0){
-        //    throw new ExceptionGenerica("Já existe uma solicitação em processamento, favor aguardar");
-       // }
+        List<SolicitacaoGrafoVO> allSolicitations = solicitacaoGrafoRepository.findAll();
+        if(allSolicitations == null || allSolicitations.size() > 0){
+            throw new ExceptionGenerica("Já existe uma solicitação em processamento, favor aguardar");
+       }
         solicitacaoGrafoVO.setDataSolicitacao(LocalDate.now());
         solicitacaoGrafoRepository.save(solicitacaoGrafoVO);
 
     }
 
-    public void readGraphFileAndGenerateGraphs (SolicitacaoGrafoVO solicitacaoGrafoVO){
+    public void readGraphFileAndGenerateGraphs(SolicitacaoGrafoVO solicitacaoGrafoVO){
+        AuditoriaVO auditoriaVO = new AuditoriaVO();
         try{
             Contadores contadores = new Contadores();
             contadores.setContadorArestas(0);
@@ -85,13 +87,11 @@ public class GraphService {
 
                 geraAlgoritimoDFS(file,resultFile,verticeOrigem);
 
-
                 if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.MATRIZ)){
                     geraMatrizAdjacenteCasoSolicitado(file, resultFile,contadores);
                 }else if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.LISTA)){
                     geraListaAdjacenteCasoSolicitado(file,resultFile,contadores);
                 }
-
 
                 geraRelatorioFinal(contadores, resultFile,primeiroVerticeDistancia,segundoVerticeDistancia);
 
@@ -120,8 +120,12 @@ public class GraphService {
             }
             solicitacaoGrafoRepository.deleteAll();
             result.delete();
-
+            auditoriaVO.setMensagemProcessamento("Relatorio Processado com sucesso!");
+            auditoriaRepository.save(auditoriaVO);
         }catch (Exception e){
+            auditoriaVO.setMensagemProcessamento(new StringBuilder().append("Erro ao processar relatorio: ").append(e).toString().substring(0,240));
+            auditoriaRepository.save(auditoriaVO);
+            auditoriaRepository.flush();
             throw new ExceptionGenerica(new StringBuilder().append("Erro ao enviar arquivo para processamento! ").append(e).toString());
         }
     }
