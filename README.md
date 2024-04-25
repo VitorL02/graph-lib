@@ -28,6 +28,9 @@ https://graph-lib.onrender.com/swagger-ui/index.html#
     4 5 -> Arestas do grafo
     1 4 -> Arestas do grafo
     5 7 -> Arestas do grafo
+o endpoint espera também um objeto do tipo : 
+com o seguinte json de exemplo: {"verticeOrigem":1678,"representacaoGrafo":"MATRIZ","primeiroVerticeDistancia":1678,"segundoVerticeDistancia":3607}
+**Sendo representacaoGrafo = LISTA / MATRIZ ** 
 
     *Qualquer formato diferente pode causar erro na geração dos arquivos*
     *Devido a limitação da ram do render a biblioteca processa somente grafos pequenos*    
