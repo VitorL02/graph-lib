@@ -20,6 +20,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -84,14 +86,19 @@ public class GraphService {
             if( file.exists() && resultFile.exists() ){
 
                 geraAlgoritimoBFS(file, resultFile,verticeOrigem,contadores,primeiroVerticeDistancia,segundoVerticeDistancia);
-
                 geraAlgoritimoDFS(file,resultFile,verticeOrigem);
 
+                long beforeUsedMem=Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory();
+                System.out.println("Memoria antes execução do algoritimo: " + beforeUsedMem );
                 if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.MATRIZ)){
                     geraMatrizAdjacenteCasoSolicitado(file, resultFile,contadores);
                 }else if(solicitacaoGrafoVO.getRepresentacaoGrafo().equals(RepresentacaoGrafoEnum.LISTA)){
                     geraListaAdjacenteCasoSolicitado(file,resultFile,contadores);
                 }
+                long afterUsedMem=Runtime.getRuntime().totalMemory()-Runtime.getRuntime().freeMemory();
+                System.out.println("Memoria apos execução do algoritimo: " + afterUsedMem );
+                long actualMemUsed=afterUsedMem-beforeUsedMem;
+                System.out.println("Memoria atual JVM: " + actualMemUsed );
 
                 geraRelatorioFinal(contadores, resultFile,primeiroVerticeDistancia,segundoVerticeDistancia);
 
@@ -101,7 +108,6 @@ public class GraphService {
                 if(file.length() == 0){
                     throw new ExceptionGenerica("Não existem arquivos de resultado");
                 }
-
                 FileOutputStream fos = new FileOutputStream("result/zipFile.zip");
                 ZipOutputStream zipOut = new ZipOutputStream(fos);
                 for(File zipThis : resultFiles){
@@ -147,8 +153,13 @@ public class GraphService {
             int segundoVertice = Integer.parseInt(linha.split(" ")[1]);
             graphDFS.addEdge(primeiroVertice,segundoVertice);
         }
-
+        LocalDateTime dataInicioGeracao = LocalDateTime.now();
+        String dataStringInicioGeracao = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss").format(dataInicioGeracao);
+        System.out.println("Data Inicio Geração DFS representação grafo: " + dataStringInicioGeracao );
         graphDFS.DFSWriter(verticeOrigem,escritor);
+        LocalDateTime dataFinalGeracao = LocalDateTime.now();
+        String dataStringFinalGeracao = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss").format(dataFinalGeracao);
+        System.out.println("Data Final Geração representação grafo: " + dataStringFinalGeracao );
         graphDFS.escreverComponentes(escritor);
 
 
@@ -200,7 +211,13 @@ public class GraphService {
         }
         contadores.setDiametroGrafo(graphBFS.calcularDiametro());
         contadores.setDistanciaEntreVertices(graphBFS.distanciaEntreVertices(primeiroVerticeDistancia,segundoVerticeDistancia));
+        LocalDateTime dataInicioGeracao = LocalDateTime.now();
+        String dataStringInicioGeracao = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss").format(dataInicioGeracao);
+        System.out.println("Data Inicio Geração BFS representação grafo: " + dataStringInicioGeracao );
         graphBFS.BFSWriter(verticeOrigem,escritor);
+        LocalDateTime dataFinalGeracao = LocalDateTime.now();
+        String dataStringFinalGeracao = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss").format(dataFinalGeracao);
+        System.out.println("Data Final Geração representação grafo: " + dataStringFinalGeracao );
 
     }
 

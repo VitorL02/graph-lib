@@ -42,12 +42,10 @@ public class ScheduleJob {
     @Scheduled(fixedDelay = 500000)
     public void limpaDiretorioGrafo(){
         File resultDirectory = new File("result");
-        File fileDirectory = new File("temp");
         try{
             if(resultDirectory != null && resultDirectory.listFiles().length > 1){
                 System.out.println(new StringBuilder().append("*** Iniciando limpeza do diretorio de resultado *** ").append(LocalDateTime.now()).toString());
                 FileUtils.cleanDirectory(resultDirectory);
-                FileUtils.cleanDirectory(fileDirectory);
                 auditoriaRepository.deleteAll();
                 System.out.println(new StringBuilder().append("*** Finalizando limpeza do diretorio de resultado *** "
                 ).append(LocalDateTime.now()).toString());
