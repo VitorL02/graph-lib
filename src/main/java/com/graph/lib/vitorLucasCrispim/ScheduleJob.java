@@ -39,21 +39,21 @@ public class ScheduleJob {
     }
 
 
-    @Scheduled(fixedDelay = 500000)
-    public void limpaDiretorioGrafo(){
-        File resultDirectory = new File("result");
-        try{
-            if(resultDirectory != null && resultDirectory.listFiles().length > 1){
-                System.out.println(new StringBuilder().append("*** Iniciando limpeza do diretorio de resultado *** ").append(LocalDateTime.now()).toString());
-                FileUtils.cleanDirectory(resultDirectory);
-                auditoriaRepository.deleteAll();
-                System.out.println(new StringBuilder().append("*** Finalizando limpeza do diretorio de resultado *** "
-                ).append(LocalDateTime.now()).toString());
-            }
-        }catch (Exception e){
-            throw new ExceptionGenerica(new StringBuilder().append("Erro ao limpar diretorio de resultados: ").append(e).toString());
-        }
+   // @Scheduled(fixedDelay = 500000)
+   // public void limpaDiretorioGrafo(){
+     //   File resultDirectory = new File("result");
+    //  try{
+    //        if(resultDirectory != null && resultDirectory.listFiles().length > 1){
+    //            System.out.println(new StringBuilder().append("*** Iniciando limpeza do diretorio de resultado *** ").append(LocalDateTime.now()).toString());
+    //             FileUtils.cleanDirectory(resultDirectory);
+    //           auditoriaRepository.deleteAll();
+    //              System.out.println(new StringBuilder().append("*** Finalizando limpeza do diretorio de resultado *** "
+    //            ).append(LocalDateTime.now()).toString());
+    //         }
+//      }catch (Exception e){
+    //         throw new ExceptionGenerica(new StringBuilder().append("Erro ao limpar diretorio de resultados: ").append(e).toString());
+    //       }
 
-    }
+    //  }
 
 }
